@@ -1,156 +1,160 @@
-const express = require("express");
-const mongoose = require("mongoose");
+const express=require("express")
 
-const app = express();
+const mongoose=require("mongoose")
 
-app.use(express.json());
+const app=express()
 
-const connect = () => {
+app.use(express.json())
 
-    return mongoose.connect("mongodb://127.0.0.1:27017/Banking_System")
+const connect=()=>{
+  return mongoose.connect("mongodb://127.0.0.1:27017/Banking_System")
 }
 
 
-const UserSchema = mongoose.Schema(
-    {
-        firstName :{type:String, require: true},
-            middleName  :{type:String, require: true},
-            lastName   :{type:String, require: true},
-            age :{type:String, require: true},
-            email  :{type:String, require: true},
-            address  :{type:String, require: true},
-            gender  :{type:String, require: true},     
-    },
-    {
-      versionKey: false,
-      timestamps: true, 
-    }
-  );
+ const User=new mongoose.Schema({
+  firstName:{type:String,required:true},
+  middleName:{type:String,required:false},
+  lastName:{type:String,required:true},
+  age:{type:String,required:true},
+ email:{type:String,required:true},
+ address:{type:String,required:true},
+ gender:{type:String,required:false,default:"female"},
+ masterId:
+ {
+     type:mongoose.Schema.Types.ObjectId,
+     ref:"masteraccounts",
+     required:true
+ }
+},
+{
+    timestamps:true,
+    versionkey:false
+})
 
-const User = mongoose.model("users",UserSchema)
+const user=mongoose.model("user",User)
 
-app.get("/users", async (req, res) => {
-  try {
-    const users = await User.find().lean().exec();
+// branch detail schema
 
-    return res.status(200).send({ users: users }); // []
-  } catch (err) {
-    return res
-      .status(500)
-      .send({ message: "Something went wrong .. try again later" });
-  }
-});
-
-app.post("/users", async (req, res) => {
-  try {
-    const post_user = await User.create(req.body)
-
-    return res.status(200).send(post_user); // []
-  } catch (err) {
-    return res
-      .status(500)
-      .send({ message: "Something went wrong .. try again later" });
-  }
-});
-
-const branchdetailSchema = mongoose.Schema(
-  {
-    name  :{type:String, require: true},
-    address   :{type:String, require: true},
-    IFSC     :{type:String, require: true},
-    MICR  :{type:String, require: true},
+const BranchDetail=new mongoose.Schema({
+    name:{type:String,required:true},
+    address:{type:String,required:true},
+    IFSC:{type:String,required:true},
+    MICR:{type:Number,required:true}
+   
   },
   {
-    versionKey: false,
-    timestamps: true, 
-  }
-);
+      timestamps:true,
+      versionkey:false
+  })
+  
+  const branchdetails=mongoose.model("branchdetails",BranchDetail)
+  
+// master accound schema
 
-const BranchDetailSchema = mongoose.model("branchdetail",branchdetailSchema)
+const MasterAccount=new mongoose.Schema({
+    balance:{type:String,required:true},
+    userId:
+ {
+     type:mongoose.Schema.Types.ObjectId,
+     ref:"user",
+     required:true
+ },
+ branchId:
+ {
+     type:mongoose.Schema.Types.ObjectId,
+     ref:"branchdetails",
+     required:true
+ }
+   
+  },
+  {
+      timestamps:true,
+      versionkey:false
+  })
+  
+  const masteraccount=mongoose.model("masteraccounts",MasterAccount)
+  
 
-app.get("/branch", async (req, res) => {
-try {
-  const users = await BranchDetailSchema.find().lean().exec();
 
-  return res.status(200).send({ users: users }); // []
-} catch (err) {
-  return res
-    .status(500)
-    .send({ message: "Something went wrong .. try again later" });
-}
-});
-
-
-
-const MasterAccountSchema = mongoose.Schema(
-    {
-      balance   :{type:String, require: true},
+ const SavingsAccount=new mongoose.Schema({
+    accountNumber:{type:String,required:true,unique:true},
+    balance:{type:String,required:true},
+    interestRate:{type:String,required:true},
+    masteraccountId:
+ {
+     type:mongoose.Schema.Types.ObjectId,
+     ref:"masteraccounts",
+     required:true
+ }
+   
+  },
+  {
+      timestamps:true,
+      versionkey:false
+  })
+  
+  const savingsaccount=mongoose.model("savingsaccounts", SavingsAccount)
+   
+  
+    const FixedAccount=new mongoose.Schema({
+        accountNumber:{type:String,required:true,unique:true},
+        balance:{type:String,required:true},
+        interestRate:{type:String,required:true},
+        StartDate:{type:String,required:true},
+        MaturityDate:{type:String,required:true},
+        masteraccountId:
+       {
+           type:mongoose.Schema.Types.ObjectId,
+           ref:"masteraccounts",
+           required:true
+       }
+      },
+      {
+          timestamps:true,
+          versionkey:false
+      })
       
-    },
-    {
-      versionKey: false,
-      timestamps: true, 
+      const fixedaccount=mongoose.model("fixedaccounts", FixedAccount)
+
+
+
+   app.get("/masteraccounts",async(req,res)=>{
+       try {
+           const master=await masteraccount.find().lean().exec()
+           return res.send(master)
+       } catch (error) {
+           console.log(error)
+       }
+   })
+
+//    2)
+ app.post("/savingsaccount",async(req,res)=>{
+    try {
+        const savings=await savingsaccount.create(req.body)
+        return res.send(savings)
+    } catch (error) {
+        console.log(error)
     }
-  );
+ })
 
-const MasterAccount = mongoose.model("masteraccount",MasterAccountSchema)
+//  3)
 
-app.get("/masteraccount", async (req, res) => {
-  try {
-    const users = await MasterAccount.find().lean().exec();
-
-    return res.status(200).send({ users: users }); // []
-  } catch (err) {
-    return res
-      .status(500)
-      .send({ message: "Something went wrong .. try again later" });
-  }
-});
-
-
-
-const SavingsAccountSchema = mongoose.Schema(
-  {
-    account_number   :{type:String, require: true},
-    balance    :{type:String, require: true},
-    interestRate      :{type:String, require: true},
-    MIstartDate:{type:String, require: true},
-    maturityDate :{type:String, require: true},
-  },
-  {
-    versionKey: false,
-    timestamps: true, 
-  }
-);
-
-const SavingsAccount = mongoose.model("savingsaccount",SavingsAccountSchema)
-
-app.get("/savingsaccount", async (req, res) => {
-try {
-  const users = await SavingsAccount.find().lean().exec();
-
-  return res.status(200).send({ users: users }); // []
-} catch (err) {
-  return res
-    .status(500)
-    .send({ message: "Something went wrong .. try again later" });
-}
-});
-
-
-
-
-
-
-
-app.listen(4000, async()=>{
-
-    try{
-        await connect();
+app.post("/fixedaccounts",async(req,res)=>{
+    try {
+        const fixed=await fixedaccount.create(req.body)
+        return res.send(fixed)
+    } catch (error) {
+        console.log(error)
     }
-    catch(err){
-        console.log(err)
-    }
+ })
 
-    console.log("listen at 4000 port ")
+//  4)
+
+app.listen(4000,async()=>{
+    try {
+       await connect()
+        console.log("listen at 4000")
+    } catch (error) {
+        console.log(error)
+    }
 })

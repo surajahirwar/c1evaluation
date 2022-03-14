@@ -1,15 +1,15 @@
 {
-  "name": "middlewares_rest_api",
+  "name": "evaluationc2",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "ndex.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "mongo": "^0.1.0"
   }
 }
